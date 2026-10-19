@@ -1,4 +1,5 @@
 # ClearTrail design v2
+Optional Android keyboard: warm off-white/teal-compatible static keys, US letter/digit/symbol pages, explicit modifiers/editing/action/switch/hide keys. Setup displays enabled and selected state separately. No typed-text display/candidates/previews. Password editors get a static private-input indicator. Compact landscape key heights; actual device visual verification pending.
 Calm readable utility: warm off-white canvas, navy text, teal accents, modest borders, no external assets. Responsive desktop sidebar and single-column mobile view.
 Dashboard: Overview/Timeline; visible DEMO/LOCKED/PAIRED state; date and app filters; foreground time, estimated sessions, apps observed, latest-record cards; daily chart, app breakdown and interval table.
 Pairing: explain operator token, phone bundle and private recovery file. No connected-device claim before records arrive. Explicitly downloadable sensitive recovery file; credentials not persisted automatically in browser.

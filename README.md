@@ -1,8 +1,16 @@
 # ClearTrail
 
-A visible Android usage monitor and private encrypted dashboard. **Foundation build: manual collection/sync; no custom keyboard or Accessibility service.**
+A visible Android usage monitor, optional typing keyboard, and private encrypted dashboard. **Foundation build: manual usage collection/sync; no Accessibility service. Keyboard input is never collected or synced.**
 
 Tracks explicitly selected WhatsApp, Instagram and Chrome foreground intervals, estimated duration and battery status during sessions you start. It does not collect typed text, messages, notifications, websites, clipboard, contacts, location, camera or microphone data.
+
+## Optional Android keyboard
+
+Install the newly built debug APK, then open ClearTrail. Under **Optional: ClearTrail Keyboard**, choose **Enable keyboard in Android settings**, enable ClearTrail Keyboard yourself, return, and choose **Select keyboard (Android picker)**. Select ClearTrail Keyboard in the system picker. Enablement and selection are separate; the setup screen refreshes their state when resumed or focused, with a manual refresh button. No Usage Access or pairing is needed for typing. Android controls these choices and displays its normal keyboard warning. Keep another keyboard enabled so you can switch back using the keyboard's **Keyboard** button or system picker.
+
+The US layout provides letters, digits, one-shot Shift, Caps, a symbol page, Space, Delete, cursor arrows, editor action/Enter, and Hide. Numeric/phone/date fields start on the symbol/digit page. It writes tapped characters directly to the focused editor, without reading surrounding text or keeping typed content. The service runs in a separate `:keyboard` process with no link to the usage controller, browser practice history or email drafts. No suggestions, clipboard, character popups or fullscreen text mirror are provided; the IME window uses FLAG_SECURE. Password variations receive a static private-input label, with no password preview; masking in the destination field remains that app's responsibility. Modifier state resets when input ends or the keyboard hides.
+
+This is a basic keyboard: English US only, no autocorrect/swipe/emoji picker, no delete auto-repeat, no automatic sentence capitalization, and no TYPE_NULL custom-editor support. Device testing is still required for system settings/picker behavior, password fields, selection/deletion, editor actions, rotation, gesture navigation and app compatibility. The files under `artifacts/` are older foundation builds; use the fresh build output under `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 Original keyboard-project specifications are preserved under `docs/archive/original-keyboard-spec/`. The root documentation describes the approved replacement.
 

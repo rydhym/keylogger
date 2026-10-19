@@ -1,5 +1,10 @@
 # Verification — 2026-10-17
 
+## Optional IME update — 2026-10-19
+Final-source Android assembleDebug, assembleRelease (unsigned), testDebugUnitTest (9 passing) and lintDebug passed. Lint has zero errors/five warnings: Gradle advisory and four localization findings in setup state text. Web syntax and all 27 Node tests passed. APK manifest inspection confirms a single system-bound BIND_INPUT_METHOD service in :keyboard and only the original two requested permissions. Source review/regression checks found no editor-text reads, history, persistence, transmission or usage/browser dependency in the IME path. The service uses static keys, transient modifiers, current InputConnection writes/key events, no suggestions/fullscreen extract/previews, and FLAG_SECURE. The browser practice/history/email implementation is unchanged.
+
+Fresh debug artifact: `android/app/build/outputs/apk/debug/app-debug.apk`. Files under `artifacts/` below remain older foundation evidence. No new APK installed or runtime/device tests performed; build and static checks cannot establish host-app/password/settings behavior. No email sent, Git commit or push performed for this update. Android IME platform reference: https://developer.android.com/develop/ui/views/touch-and-input/creating-input-method.
+
 ## Automated
 `npm.cmd run check` and `npm.cmd test`: 20 passing Node tests, no skips. This includes AES-GCM authentication/AAD binding, strict metadata schema, API roles/isolation, ciphertext-only storage, retry/nonce handling, body limits, retention, purge/revoke, host/Origin checks, pagination, persistent restart, rate/device/storage bounds and Java interoperability.
 

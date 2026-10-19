@@ -3,11 +3,13 @@ package app.cleartrail
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.ComponentName
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -19,6 +21,7 @@ class MainActivity : Activity() {
     private val applicationState get() = application as ClearTrailApplication
     private lateinit var column: LinearLayout
     private lateinit var status: TextView
+    private lateinit var keyboardStatus: TextView
     private lateinit var sessionStatus: TextView
     private lateinit var pairingInput: EditText
     private lateinit var start: Button
@@ -46,10 +49,16 @@ class MainActivity : Activity() {
         setContentView(scroll)
         text("CLEARTRAIL", 14, Color.rgb(22, 94, 80))
         text("Your activity. Your control.", 27)
-        text("Track selected-app usage on your own phone. No keyboard replacement, messages, typed text, notifications or browsing history are collected. Records are encrypted before syncing to your paired dashboard.")
+        text("Track selected-app usage on your own phone. Messages, typed text, notifications and browsing history are not collected. Usage records are encrypted before syncing. You can optionally enable ClearTrail Keyboard for typing; its input never enters dashboard history or email.")
         text("Foundation preview: capture and sync are manual. Capture at least once every 24 hours. After a process restart, sessions pause and the uncaptured interval is discarded.", 12)
         sessionStatus = text("Loading secure storage…", 16)
         status = text("", 13)
+        text("Optional: ClearTrail Keyboard", 19)
+        text("Enable the keyboard in Android settings, then select it in the system picker. Android will show its standard keyboard warning. Only you can grant access or choose the active keyboard. Keep a system keyboard available to switch back. ClearTrail Keyboard sends taps directly to the focused field, with no typed-text history, suggestions, previews or email. Browser practice history is separate.", 12)
+        keyboardStatus = text("Checking keyboard state…", 13)
+        button("Enable keyboard in Android settings") { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
+        button("Select keyboard (Android picker)") { getSystemService(InputMethodManager::class.java).showInputMethodPicker() }
+        button("Refresh keyboard state") { refreshKeyboardState() }
         button("1. Open Android Usage Access") { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
         text("2. Pair with your dashboard", 19)
         pairingInput = EditText(this).apply {
@@ -99,7 +108,20 @@ class MainActivity : Activity() {
     }
     override fun onResume() {
         super.onResume()
+        refreshKeyboardState()
         if (::status.isInitialized && !busy) perform { "Usage Access and session state refreshed. Capture is manual." }
+    }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) refreshKeyboardState()
+    }
+    private fun refreshKeyboardState() {
+        if (!::keyboardStatus.isInitialized) return
+        val component = ComponentName(this, ClearTrailInputMethod::class.java)
+        val manager = getSystemService(InputMethodManager::class.java)
+        val enabled = manager.enabledInputMethodList.any { ComponentName.unflattenFromString(it.id) == component }
+        val selected = ComponentName.unflattenFromString(Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD) ?: "") == component
+        keyboardStatus.text = "ClearTrail Keyboard: ${if (enabled) "enabled" else "not enabled"}\nSelected input method: ${if (selected) "ClearTrail Keyboard" else "another keyboard"}. Enablement and selection are separate Android settings."
     }
     private fun text(value: String, size: Int = 14, color: Int = Color.rgb(39, 58, 53)): TextView = TextView(this).apply {
         text = value; textSize = size.toFloat(); setTextColor(color); setPadding(0, dp(10), 0, dp(8))

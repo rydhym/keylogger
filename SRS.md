@@ -2,6 +2,7 @@
 The user approved replacing the keyboard project with a visible Android usage monitor and encrypted dashboard on 2026-10-17. Originals are preserved in docs/archive/original-keyboard-spec as historical material.
 
 ## Product and first slice
+2026-10-19 scope addition: optional Android InputMethodService for user-selected cross-app typing. Android settings and picker require explicit user enablement/selection. No cross-app input history, persistence, transmission or practice/email integration. Browser practice history/drafts remain focused-area-only. The earlier no-keyboard statement below refers to collection, not this typing-only component.
 Usage Access + explicit active session + selected apps. Initial selection: WhatsApp, Instagram, Chrome. Collect package identifiers, foreground/background timestamps, estimated durations, session IDs and battery percentage. No keyboard, Accessibility, UI text, messages, notifications, URLs, contacts, clipboard, camera or microphone collection.
 Visible launcher, disclosure, actual permission checks, start/pause/resume/stop, manual capture/sync, bounded encrypted offline outbox.
 Private browser dashboard: pairing, recovery import/export, decryption, timeline, app/date filters, summaries, CSV export, deletion and revocation.

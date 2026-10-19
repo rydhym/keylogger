@@ -1,5 +1,13 @@
 # ClearTrail progress and handoff
-Updated: 2026-10-18 (Asia/Calcutta).
+Updated: 2026-10-19 (Asia/Calcutta).
+
+## Android keyboard source-control handoff
+User subsequently authorized committing/pushing the completed typing-only IME and setup changes to origin/main. Reviewed diff and fetched remote: no remote divergence. Rechecked syntax and all 27 Node tests successfully. Android source is unchanged since the passing final debug/release build, lint and nine Kotlin tests recorded below. No cross-app recording or automatic-email features added; no email sent. Private local data and generated APK/build/tool artifacts remain ignored.
+
+## Optional typing-only Android keyboard
+Implemented user-authorized InputMethodService, BIND_INPUT_METHOD manifest/XML subtype metadata and :keyboard process. Setup offers Android enable-input-method settings, system picker and separate enabled/selected state refreshed on resume/focus/manual request. User retains control and can switch back; no settings bypass. Static US letter/digit/symbol keyboard, Shift/Caps, Space/Delete/arrows, editor action/Enter, keyboard switch and Hide. Numeric/phone/date fields initially show digits/symbols. Transient modifiers reset on hide/finish. No typed-content reads, storage, logging, suggestions/previews, fullscreen extract, network or practice-history/email path; window uses FLAG_SECURE. Password variants show only a static private-input label. Browser focused practice/history/email files unchanged.
+
+Final-source validation: assembleDebug/assembleRelease (unsigned)/testDebugUnitTest/lintDebug PASS. Nine Kotlin tests and 27 Node tests passed, zero failures/skips; web syntax PASS. Packaged IME permission/process/metadata inspected via aapt; only Usage Access/INTERNET remain requested. Source boundary regression checks passed. Lint: zero errors/five warnings (Gradle advisory and localization findings on keyboard setup status); SDK XML/deprecated inset warnings non-blocking. Initial sandbox build blocked daemon connections; build succeeded with local connectivity enabled. No device tests; adb check itself was sandbox-blocked. Fresh APK is android/app/build/outputs/apk/debug/app-debug.apk; artifacts/ contains older foundation builds. No email sent, commit or push for this update. Real-device gates and limitations are in README/TESTING.
 
 ## Source-control preparation
 Initialized Git on main for the user-requested https://github.com/rydhym/keylogger.git destination (remote had no refs when inspected). Source, documentation, tests, UI assets and pinned Gradle wrapper included. Local credentials/data, downloaded tools, Gradle caches, APKs/build outputs and generated artifacts excluded. Ignore rules additionally cover environment variants, private-key containers and database files. Staged source scans found no private-key/token patterns or long literal credential assignments. Syntax checks and full Node suite passed: 26 tests, zero failures/skips. No email sent during verification.
@@ -27,7 +35,7 @@ Phase 2: physical-device validation NOT STARTED.
 Project is not production-ready or fully complete.
 
 ## Approved scope
-Visible personal Android app-usage monitor and encrypted browser dashboard. No custom keyboard, Accessibility text collection, message/notification capture, hidden operation or credential logging. Initial apps: WhatsApp, Instagram, Chrome. Original eight specifications preserved in docs/archive/original-keyboard-spec; root v2 docs are current.
+Visible personal Android app-usage monitor and encrypted browser dashboard, plus optional typing-only Android keyboard (authorized 2026-10-19) and separate focused browser practice exercise. No cross-app typed-content collection, Accessibility text collection, message/notification capture, hidden operation or credential logging. Initial monitored apps: WhatsApp, Instagram, Chrome. Original eight specifications preserved in docs/archive/original-keyboard-spec; root v2 docs and DEC-010 are current.
 
 ## Implemented
 - Android visible launcher, disclosure, Usage Access settings/check, selected-app controls.

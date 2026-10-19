@@ -2,6 +2,10 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.INTERNET" />
     <application android:name=".ClearTrailApplication" android:label="ClearTrail" android:icon="@drawable/ic_cleartrail" android:theme="@style/AppTheme" android:allowBackup="false" android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules" android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config" android:supportsRtl="true">
+        <service android:name=".ClearTrailInputMethod" android:label="@string/keyboard_name" android:exported="true" android:permission="android.permission.BIND_INPUT_METHOD" android:process=":keyboard">
+            <intent-filter><action android:name="android.view.InputMethod" /></intent-filter>
+            <meta-data android:name="android.view.im" android:resource="@xml/input_method" />
+        </service>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>

@@ -1,1 +1,5 @@
-<resources><string name="working">Working…</string></resources>
+<resources>
+    <string name="working">Working…</string>
+    <string name="keyboard_name">ClearTrail Keyboard</string>
+    <string name="keyboard_subtype">English (US)</string>
+</resources>

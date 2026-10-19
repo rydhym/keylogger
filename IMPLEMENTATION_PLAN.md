@@ -5,6 +5,7 @@ Archive originals, record scope/stack/encryption, initialize living docs, config
 ## Phase 1 — End-to-end foundation
 Protocol/schema, bounded ciphertext backend, dashboard/demo, Android manual-session Usage Access collector, encrypted outbox and manual sync. Test server/models/crypto; compile Android when tools available.
 ## Phase 2 — Device validation
+Optional typing-only IME added 2026-10-19: verify user enable/select/switch-back, editor actions, password/numeric fields, selection deletion, modifiers, portrait/landscape/insets and no practice/email integration on a real phone. Build success alone does not complete these gates.
 Physical phone over HTTPS: permission denial/revocation, app/session boundaries, pause/resume/stop, process death, estimates, offline retry, deletion/revoke, key loss, queue/low-storage behavior. Android 15/16/17 compatibility only when tested.
 ## Phase 3 — Completeness
 Visible scheduled collection/sync, local history, explicit sharing with preview, broader app selection, configurable retention.

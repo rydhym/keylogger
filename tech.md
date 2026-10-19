@@ -5,7 +5,7 @@ Server: Node 24 (observed 24.18.0), built-in HTTP/SQLite/crypto.
 Web: HTML/CSS/ES modules/Web Crypto; no external scripts/assets.
 Storage: ciphertext SQLite server, bounded encrypted envelope files phone.
 Testing: node:test, JUnit for pure Kotlin session logic. Actual verification in PROGRESS.md.
-No IME, Accessibility, Room, Hilt, Compose, WorkManager or npm runtime dependencies.
+Optional platform InputMethodService (2026-10-19) in :keyboard with a static programmatic US layout and direct editor writes only. No Accessibility, Room, Hilt, Compose, WorkManager or npm runtime dependencies.
 Tooling initially available: Node/npm/Python. Java/Gradle/adb/SDK absent from checked locations.
 
 ## Verified toolchain, 2026-10-17

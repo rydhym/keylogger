@@ -1,4 +1,7 @@
 # Decisions
+## DEC-010 — Optional typing-only Android IME (2026-10-19)
+User explicitly authorized a user-enabled/selected cross-app keyboard while restricting history/email to the browser practice area. Adds InputMethodService with BIND_INPUT_METHOD metadata, static US layout, direct current-editor writes and setup settings/picker controls. IME has no text-read/history/storage/network path and runs in :keyboard, with no dependency on usage/controller/browser code. No preview, suggestions or fullscreen extract editor; FLAG_SECURE. This supersedes earlier blanket no-IME scope, but not the prohibition on cross-app typed-content collection. Android user actions exclusively control enablement/selection. New work is local only; do not push without a new request.
+
 ## DEC-009 — Explicit practice-history email draft (2026-10-18)
 No email backend is configured. The dashboard exposes an explicit recipient field and Send history control that requests a mailto draft of only the currently displayed practice entries. Sending/review happens in the user's email client. No automatic sending, delivery claim, credentials, server endpoint or unrelated dashboard data. Recipient is outside the practice focus boundary and cleared on pagehide.
 

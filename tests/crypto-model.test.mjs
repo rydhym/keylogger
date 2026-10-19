@@ -54,11 +54,28 @@ test('demo records meet real metadata schema and do not include future intervals
   assert.equal(records.length, 7);
   for (const data of records) { validatePayload(data); assert.ok(data.to <= now); }
 });
-test('Android manifest requests only usage access and network, with visible launcher and no data capture services', () => {
+test('Android manifest has a system-bound isolated IME, visible launcher and no capture services', () => {
   const manifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
   const permissions = [...manifest.matchAll(/<uses-permission android:name="([^"]+)"/g)].map(match => match[1]).sort();
   assert.deepEqual(permissions, ['android.permission.INTERNET', 'android.permission.PACKAGE_USAGE_STATS']);
   assert.match(manifest, /android.intent.category.LAUNCHER/);
   assert.match(manifest, /android:allowBackup="false"/);
-  assert.doesNotMatch(manifest, /<service|<receiver|InputMethodService|AccessibilityService|BOOT_COMPLETED/);
+  assert.doesNotMatch(manifest, /<receiver|AccessibilityService|BOOT_COMPLETED/);
+  assert.equal([...manifest.matchAll(/<service\b/g)].length, 1);
+  assert.match(manifest, /android:name="\.ClearTrailInputMethod"[^>]*android:permission="android.permission.BIND_INPUT_METHOD"[^>]*android:process=":keyboard"/);
+  assert.match(manifest, /android.view.InputMethod/);
+  assert.match(manifest, /android:resource="@xml\/input_method"/);
+});
+
+test('IME is limited to static UI and current-editor writes, without a history/storage/network path', () => {
+  const source = readFileSync(new URL('../android/app/src/main/java/app/cleartrail/ClearTrailInputMethod.kt', import.meta.url), 'utf8');
+  const imports = [...source.matchAll(/^import (.+)$/gm)].map(m => m[1].trim());
+  assert.ok(imports.every(name => /^android\.(graphics|inputmethodservice|text|view|widget)\./.test(name)));
+  assert.doesNotMatch(source, /SessionController|ClearTrailApplication|Outbox|Vault|SyncClient|WebView|SharedPreferences|java\.io|java\.net|android\.util\.Log|Clipboard|sendBroadcast|startService|getTextBeforeCursor|getTextAfterCursor|getSelectedText|getExtractedText|setComposingText/);
+  assert.match(source, /currentInputConnection\?\.commitText/);
+  assert.match(source, /FLAG_SECURE/);
+  assert.match(source, /onEvaluateFullscreenMode\(\) = false/);
+  const metadata = readFileSync(new URL('../android/app/src/main/res/xml/input_method.xml', import.meta.url), 'utf8');
+  assert.match(metadata, /android:imeSubtypeMode="keyboard"/);
+  assert.match(metadata, /android:settingsActivity="app.cleartrail.MainActivity"/);
 });

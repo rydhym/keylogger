@@ -1,4 +1,5 @@
 # Flows
+Keyboard: optional setup disclosure -> Android input-method settings (user enables) -> Android picker (user selects) -> static keyboard tap -> active editor InputConnection only. Hide/finish resets modifiers. Keyboard picker permits switching back. No path from IME to usage records, browser practice history or email.
 Setup: visible app -> disclosure -> Android Usage Access -> select apps -> explicit start.
 Capture: active session -> user capture/pause/stop/sync -> query only active interval and selected apps -> derive estimated intervals -> metadata -> encrypt -> persist bounded outbox -> advance boundary after success.
 Pair: operator token in dashboard -> server creates upload/read credentials -> browser creates key -> save private recovery -> transfer phone bundle -> Android validates and wraps secrets in Keystore.
