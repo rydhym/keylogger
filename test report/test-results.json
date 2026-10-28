@@ -1,42 +1,97 @@
 {
   "testExecutionSummary": {
-    "timestamp": "2026-10-22T13:30:00Z",
+    "timestamp": "2026-10-22T14:55:00Z",
     "application": "com.example.inputmonitor",
     "versionName": "0.1.0",
     "versionCode": 1,
-    "targetSdk": 35,
     "minSdk": 31,
+    "targetSdk": 35,
     "environment": {
       "os": "Android 16 (API 36 Preview)",
       "deviceModel": "sdk_gphone64_x86_64",
       "avd": "Pixel_10",
-      "hostJdk": "Java 25.0.1 LTS",
+      "hostJdk": "Microsoft OpenJDK 17.0.20",
       "gradleVersion": "8.7.0",
       "buildVariant": "debug"
     },
-    "totals": {
-      "totalTests": 98,
-      "passed": 98,
+    "androidApiLevelsTested": {
+      "api31": "BLOCKED (Missing local AVD system image)",
+      "api35": "BLOCKED (Missing local AVD system image)",
+      "api36": "PASS (Live validated on Pixel 10 emulator)"
+    },
+    "topLevelQaScenarios": {
+      "total": 51,
+      "passed": 47,
       "failed": 0,
-      "blocked": 0,
+      "blocked": 2,
       "notRun": 0,
-      "passRatePercentage": 100.0
+      "outOfScope": 2,
+      "passRatePercentage": 95.9
     },
-    "unitTestSuites": {
-      "totalSuites": 62,
-      "totalTests": 326,
-      "passed": 326,
+    "unitTests": {
+      "suites": 68,
+      "tests": 352,
+      "passed": 352,
       "failed": 0,
-      "executionTimeSeconds": 53
+      "executionTimeSeconds": 15
     },
-    "crashesObserved": 0,
-    "anrsObserved": 0,
-    "memoryProfile": {
-      "totalPssKb": 107586,
-      "javaHeapKb": 23780,
-      "nativeHeapKb": 20344,
-      "oomErrors": 0
+    "liveE2E": {
+      "totalWorkflows": 24,
+      "passed": 24,
+      "failed": 0
     },
-    "verdict": "READY"
+    "securityTests": {
+      "totalTests": 12,
+      "passed": 12,
+      "failed": 0,
+      "sensitiveLogLeakage": "None (0 occurrences)",
+      "httpsEnforced": true,
+      "cleartextProhibited": true,
+      "sqlCipherEncrypted": true,
+      "keyStoreTokenStorage": true
+    },
+    "stressTesting": {
+      "monkeyEvents": 10000,
+      "durationSeconds": 126.178,
+      "throttleMs": 10,
+      "crashes": 0,
+      "anrs": 0,
+      "oomErrors": 0,
+      "memoryBefore": {
+        "totalPssKb": 77784,
+        "javaHeapKb": 11140,
+        "nativeHeapKb": 8144
+      },
+      "memoryAfter": {
+        "totalPssKb": 140789,
+        "javaHeapKb": 38972,
+        "nativeHeapKb": 26360
+      }
+    },
+    "backupValidation": {
+      "realHttpsUpload": "PASS (POST to Webhook.site verified)",
+      "remoteFileReceived": "PASS (2,949 byte multipart CSV received)",
+      "csvIntegrity": "PASS (18 events, exact match to local export)",
+      "backupOffPrivacy": "PASS (0 network calls when disabled)",
+      "networkRecovery": "PASS (Job paused offline, uploaded on reconnection)",
+      "wifiOnlyConstraint": "PASS (JobScheduler unmetered capability enforced)",
+      "rebootPersistence": "PASS (Survived reboot, 1 unique periodic job retained)",
+      "duplicateProtection": "PASS (ExistingWorkPolicy.KEEP prevented upload storm)",
+      "temporaryFileCleanup": "PASS (cacheDir/backups/ wiped immediately)"
+    },
+    "buildValidation": {
+      "unitTests": "PASS (352/352 passed in 15s)",
+      "assembleDebug": "PASS (Debug APK 51,981,242 bytes created in 2s)",
+      "lintDebug": "PASS (0 errors, 0 warnings in 53s)",
+      "lintJdk": "Microsoft OpenJDK 17.0.20.101-hotspot"
+    },
+    "bugs": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 1
+    },
+    "finalVerdict": "READY WITH MINOR ISSUES",
+    "productionRecommendation": "PERFORM MANUAL VALIDATION (Targeted Physical Device Sanity Check on API 31 & API 35)"
   }
 }

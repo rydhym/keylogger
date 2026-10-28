@@ -48,5 +48,8 @@ Thumbs.db
 *.kotlin_module
 .kotlin/
 
+# Generated document layout previews
+reports/qa/
+
 # Crash logs
 crash-reports/

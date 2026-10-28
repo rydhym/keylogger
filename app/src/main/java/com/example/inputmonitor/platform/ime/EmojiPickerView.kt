@@ -1,7 +1,6 @@
 package com.example.inputmonitor.platform.ime
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
@@ -16,10 +15,10 @@ internal class EmojiPickerView(
     private val send: (KeyAction) -> Unit,
     private val returnToKeyboard: () -> Unit
 ) : LinearLayout(context) {
-    private val dark = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    private val dark = KeyboardAppearance.isDark(context)
     private val ink = Color.parseColor(if (dark) "#E3E3E3" else "#444746")
     private val muted = Color.parseColor(if (dark) "#9AA0A6" else "#747775")
-    private val accent = Color.parseColor(if (dark) "#004A77" else "#D3E3FD")
+    private val accent = Color.parseColor(if (dark) "#454746" else "#C2D7FC")
     private var category = 0
     private var query = ""
     private var searching = false

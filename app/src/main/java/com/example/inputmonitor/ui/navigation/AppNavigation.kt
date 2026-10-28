@@ -212,22 +212,29 @@ fun AppNavigation(
                         val exportDir = java.io.File(context.cacheDir, "exports").apply { mkdirs() }
                         val safeName = exportUiState.selectedSessionName.replace("[^a-zA-Z0-9_-]".toRegex(), "_")
                         val shareFile = java.io.File(exportDir, "inputmonitor_${safeName}_${System.currentTimeMillis()}.csv")
-                        java.io.FileOutputStream(shareFile).use { fos ->
-                            exportViewModel.executeExport(fos)
+                        val fos = java.io.FileOutputStream(shareFile)
+                        val bos = java.io.BufferedOutputStream(fos)
+                        exportViewModel.executeExport(bos) { success ->
+                            if (success && shareFile.exists() && shareFile.length() > 0) {
+                                val contentUri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    shareFile
+                                )
+                                val sendIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "text/csv"
+                                    putExtra(android.content.Intent.EXTRA_SUBJECT, "InputMonitor CSV Export - ${exportUiState.selectedSessionName}")
+                                    putExtra(android.content.Intent.EXTRA_TEXT, "Exported interaction data report.")
+                                    putExtra(android.content.Intent.EXTRA_STREAM, contentUri)
+                                    clipData = android.content.ClipData.newUri(context.contentResolver, "CSV Export", contentUri)
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                val chooserIntent = android.content.Intent.createChooser(sendIntent, "Share CSV").apply {
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(chooserIntent)
+                            }
                         }
-                        val contentUri = androidx.core.content.FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.fileprovider",
-                            shareFile
-                        )
-                        val sendIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                            type = "text/csv"
-                            putExtra(android.content.Intent.EXTRA_SUBJECT, "InputMonitor CSV Export - ${exportUiState.selectedSessionName}")
-                            putExtra(android.content.Intent.EXTRA_TEXT, "Exported interaction data report.")
-                            putExtra(android.content.Intent.EXTRA_STREAM, contentUri)
-                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        context.startActivity(android.content.Intent.createChooser(sendIntent, "Share CSV"))
                     } catch (_: Throwable) {
                     }
                 }

@@ -62,6 +62,9 @@ interface SessionManager {
 
     /**
      * Restores an active or paused session if one was persisted prior to application process restart.
+     * Retains the same ID and state; stopped, ended, deleted and inactive records are not resumed.
+     * Android starts enabled services after boot/unlock; this method does not grant permissions
+     * or bypass force-stop, disabled services, or device background restrictions.
      */
     suspend fun restoreSessionIfActive(): MonitoringSession?
 

@@ -29,6 +29,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".platform.ime.KeyboardMediaActivity"
+            android:exported="false" android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@android:style/Theme.Material.Light.Dialog.NoActionBar" />
+
         <!-- Custom Keyboard Service -->
         <service
             android:name=".platform.ime.CustomKeyboardService"

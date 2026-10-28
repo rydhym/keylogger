@@ -1539,3 +1539,35 @@ Negative:
 
 
 
+
+
+## 2026-10-22: Keyboard appearance and local media
+
+The keyboard retains visible Input Monitor branding while adopting familiar rounded keys, half-key home-row offsets and 48 dp key faces. The appearance toggle stores only a light/dark preference; long press restores system appearance. Existing alphabet, number, phone, email and symbol models remain available. Long press exposes common accents and alternate punctuation.
+
+GIF and sticker controls open Android's explicit document picker for user-selected local images. There is no online media catalog, search transmission, new permission or new dependency. A non-exported activity copies selected images (up to 10 MB) on a worker thread into a dedicated FileProvider cache directory. Media insertion uses commitContent only for matching MIME types and the originating package/field when the keyboard returns. Media selections bypass the monitoring event pipeline and are not logged. Files expire on subsequent media use after 24 hours; a 50 MB cache admission limit bounds accumulation.
+
+Verification: modified XML parsed successfully and targeted git diff whitespace check passed. Android compilation and unit tests were attempted but blocked before compilation: the configured Java 17 installation is absent, and daemon toolchain metadata has no Windows x86_64 download URL. The available Android Studio runtime is Java 25. Runtime rendering and rich-media delivery remain unverified.
+
+
+### Reference-based keyboard refinement and updated validation
+
+Applied the supplied dark keyboard reference to charcoal surfaces, gray key faces, small top-row number hints, compact row geometry, rectangular shift/delete keys, comma-before-emoji ordering, blank spacebar and blue action key. Light mode uses the same geometry with white faces on pale gray. Input Monitor branding remains in the toolbar; unsupported voice/translation controls are not shown.
+
+The updated local Java 25 configuration now permits compilation. `:app:compileDebugKotlin` passed. The complete unit run executed 352 tests with three initial failures: two LargeDatabaseStressTest assertions and the old keyboard bottom-row expectation. Updated that expectation and reran `:app:testDebugUnitTest --tests com.example.inputmonitor.platform.ime.*`; all keyboard tests passed. Database stress failures were outside this UI change and remain unresolved. Visual device verification remains pending.
+
+
+### Installed build and visual verification
+
+Replaced font-dependent smile, sticker, palette, shift, delete and return symbols with Canvas-drawn icons. Text keys explicitly use Android sans-serif. Built a fresh debug APK with `:app:assembleDebug` and reran the 59 IME unit tests successfully. Installed the APK over the emulator build; the previous installation timestamp was 22:27:47 and the new installation is 22:48:14 on 2026-10-22. Confirmed Input Monitor is the selected IME. Visually inspected light and dark keyboards in an empty search field without typing or submitting text. Both render the new icons, top-row hints, blank spacebar, compact toolbar and visible Input Monitor branding. Captures: app/build/keyboard-light.png and app/build/keyboard-dark.png. Left the keyboard in dark mode.
+
+
+## 2026-10-28 Session restoration after restart
+
+The existing implementation already persists the selected session ID in DataStore and its ACTIVE/PAUSED state in encrypted Room. MonitoringApplication restores the saved state when Android starts the application process, including through an enabled IME/accessibility service after boot and unlock. No boot receiver, permission re-grant mechanism, foreground service or forced service activation was added.
+
+Restoration now explicitly accepts only ACTIVE or PAUSED records with no end time. Ended, stopped, inactive and deleted records must not resume collection. The dashboard explains that a saved session restores when Android starts the app or enabled services and that permissions remain controlled by Android. Tests reconstruct the manager over shared fake persistence to check the same ID/start time, preserved logging choices, paused/stopped states, missing and inconsistent records and repeated restoration without duplicates. These tests do not simulate Android permission retention or a physical reboot.
+
+The phone cannot collect events while powered off. Credential-protected storage is only available after unlock. Force-stop, removed permissions, disabled services, user-selected keyboard changes, cleared app data, and manufacturer background restrictions remain respected. This change does not guarantee immediate execution at boot or continuation after every possible shutdown condition.
+
+Validation: debug APK assembly and targeted session/session-gate/event-processor tests passed (31 tests, 0 failures). No connected emulator or phone was available; a real reboot, permission retention and the dashboard text still require device verification.

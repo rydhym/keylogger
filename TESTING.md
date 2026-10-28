@@ -727,3 +727,19 @@ Before project completion:
 The agent shall update `PROGRESS.md` with the latest test state.
 
 **END OF TESTING PLAN**
+
+## Keyboard appearance/media manual regression (2026-10-22; pending execution)
+
+- Check alphabet, shifted/caps, email, URL, both symbol pages, number and phone layouts in portrait, landscape and split-screen. Confirm half-key home-row alignment, visible branding and no clipped toolbar labels.
+- Toggle light/dark, reopen the keyboard and emoji panel, then long press the theme control to restore system appearance.
+- Search emoji, select categories/skin tones and return to letters. Long press letters for accents, top-row digits and punctuation alternatives.
+- Choose a local GIF and PNG/WebP sticker in a rich-content editor advertising matching MIME types. Verify animation/transparency in the recipient. Cancel the document picker and confirm ordinary typing resumes.
+- Try a plain-text editor, a different editor after selection, files over 10 MB, cache capacity exhaustion and unreadable files; verify no unintended insertion or crash. Rotate while selecting media and verify return to the same editor.
+- Confirm selected media and search queries never enter event persistence or exports, and FileProvider grants expose only the chosen media file.
+
+
+## Session restart recovery checks added 2026-10-28
+
+Automated checks in SessionManagerTest cover an active session retaining its ID and start time across manager reconstruction, persisted logging choices, a paused session remaining paused, stopped/deleted sessions not reopening, ended and inactive records being rejected, and repeated restoration not creating duplicate sessions.
+
+Live checks pending because no device was connected: start an explicitly enabled session, record its ID and Android keyboard/accessibility settings, reboot the test device, unlock, and confirm framework service reconnection restores the same session without requiring Start Session. Repeat with paused/stopped sessions and with logging toggles disabled. Compare Android permissions/settings before and after; do not use shell permission grants or service activation as part of this test. Also check revoked permissions, force-stop and storage-unavailable behavior without bypassing Android controls. No collection should occur while the phone is off.

@@ -127,14 +127,18 @@ class SessionManagerImpl(
             val savedSessionId = preferencesRepository.activeSessionId.first() ?: return@withLock null
             val session = sessionRepository.getSessionById(savedSessionId)
 
-            if (session != null && session.state != SessionState.STOPPED) {
+            // Restore only an unfinished session the user left active or paused.
+            // Reboot must never revive an ended or otherwise invalid record.
+            val canRestore = session != null && session.endTime == null &&
+                (session.state == SessionState.ACTIVE || session.state == SessionState.PAUSED)
+            if (canRestore) {
                 _currentSession.value = session
                 _sessionState.value = session.state
                 session
             } else {
                 preferencesRepository.setActiveSessionId(null)
                 if (session != null) {
-                    _currentSession.value = session
+                    _currentSession.value = session.copy(state = SessionState.STOPPED)
                     _sessionState.value = SessionState.STOPPED
                 }
                 null

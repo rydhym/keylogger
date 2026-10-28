@@ -82,8 +82,8 @@ data class KeyboardLayout(
                 )
                 else -> listOf(
                     KeyModel(label = "?123", action = KeyAction.SwitchLayout(KeyboardLayoutType.SYMBOLS), weight = 1.4f, isSpecial = true),
-                    KeyModel(label = "🌐", action = KeyAction.SwitchIme, weight = 1.0f, isSpecial = true),
                     KeyModel(label = ",", action = KeyAction.Character(","), weight = 1.0f),
+                    KeyModel(label = "🌐", action = KeyAction.SwitchIme, weight = 1.0f, isSpecial = true),
                     KeyModel(label = "SPACE", action = KeyAction.Space, weight = 4.0f),
                     KeyModel(label = ".", action = KeyAction.Character("."), weight = 1.0f),
                     KeyModel(label = enterLabel, action = KeyAction.Enter, weight = 1.6f, isSpecial = true)

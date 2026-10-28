@@ -25,6 +25,28 @@ class CustomKeyboardService : InputMethodService() {
     private val keyProcessor = KeyProcessor()
     private val keyboardController = KeyboardController()
     private var keyboardView: KeyboardView? = null
+    private data class PendingMedia(val uri: android.net.Uri, val mime: String,
+        val editorPackage: String?, val field: Int?)
+    private var pendingMedia: PendingMedia? = null
+
+    private fun deliverPendingMedia() {
+        val media = pendingMedia ?: return
+        pendingMedia = null
+        val info = currentInputEditorInfo
+        val supported = info?.contentMimeTypes.orEmpty().any {
+            android.content.ClipDescription.compareMimeTypes(media.mime, it)
+        }
+        val sent = if (info?.packageName == media.editorPackage && info?.fieldId == media.field && supported) {
+            runCatching {
+                currentInputConnection?.commitContent(android.view.inputmethod.InputContentInfo(media.uri,
+                    android.content.ClipDescription("Keyboard media", arrayOf(media.mime)), null),
+                    InputConnection.INPUT_CONTENT_GRANT_READ_URI_PERMISSION, null) == true
+            }.getOrDefault(false)
+        } else false
+        if (!sent) android.widget.Toast.makeText(this,
+            "This field does not support this media. Try a messaging attachment field.",
+            android.widget.Toast.LENGTH_LONG).show()
+    }
     private val typingSuggestions by lazy {
         TypingSuggestions(this, { currentInputConnection }) { keyboardView?.setSuggestions(it) }
     }
@@ -67,6 +89,15 @@ class CustomKeyboardService : InputMethodService() {
         view.setLayout(keyboardController.currentLayout.value)
         keyboardView = view
         view.setSuggestionsAllowed(SuggestionPolicy.allows(currentInputEditorInfo?.inputType ?: 0, currentInputEditorInfo?.imeOptions ?: 0))
+        view.onMedia = { mime ->
+            val editorPackage = currentInputEditorInfo?.packageName
+            val editorField = currentInputEditorInfo?.fieldId
+            KeyboardMediaActivity.deliver = { uri, actualMime ->
+                pendingMedia = PendingMedia(uri, actualMime, editorPackage, editorField)
+            }
+            startActivity(android.content.Intent(this, KeyboardMediaActivity::class.java)
+                .putExtra("mime", mime).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
         view.onSuggestion = { runCatching { typingSuggestions.choose(it) }; Unit }
         return view
     }
@@ -86,6 +117,7 @@ class CustomKeyboardService : InputMethodService() {
         view.startInput(keyboardController.currentLayout.value)
         view.setSuggestionsAllowed(SuggestionPolicy.allows(info?.inputType ?: 0, info?.imeOptions ?: 0))
         runCatching { typingSuggestions.refresh() }
+        deliverPendingMedia()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -168,6 +200,8 @@ class CustomKeyboardService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        KeyboardMediaActivity.deliver = null
+        pendingMedia = null
         typingSuggestions.close()
         keyboardView = null
         super.onDestroy()

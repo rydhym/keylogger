@@ -45,7 +45,7 @@ internal class TypingSuggestions(
         correction = if (enabled) LocalSuggestions.correction(word) else null
         display(if (enabled) candidates(LocalSuggestions.suggest(word)) else emptyList())
         if (word.length >= 2) runCatching {
-            session?.getSuggestions(TextInfo(word, 0, generation), 3)
+            session?.getSuggestions(arrayOf(TextInfo(word, 0, generation)), 3, false)
         }
     }
 

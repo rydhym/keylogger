@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -264,5 +265,103 @@ class SessionManagerTest {
         assertEquals("persisted-1", restored?.id)
         assertEquals(SessionState.ACTIVE, manager.sessionState.value)
         assertEquals("Restored Session", manager.currentSession.value?.name)
+    }
+
+    @Test
+    fun restart_restoresSameSessionWithoutChangingLoggingChoices() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val original = createSessionManager(sessions, preferences).startSession("Keep this session")
+        preferences.setKeyboardLoggingEnabled(false)
+        preferences.setAccessibilityLoggingEnabled(true)
+
+        val restarted = createSessionManager(sessions, preferences)
+        val restored = restarted.restoreSessionIfActive()
+
+        assertEquals(original, restored)
+        assertEquals(SessionState.ACTIVE, restarted.sessionState.value)
+        assertEquals(1, sessions.sessions.size)
+        assertFalse(preferences.isKeyboardLoggingEnabled.first())
+        assertTrue(preferences.isAccessibilityLoggingEnabled.first())
+    }
+
+    @Test
+    fun restart_keepsPausedSessionPaused() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val original = createSessionManager(sessions, preferences)
+        val session = original.startSession("Paused by user")
+        original.pauseSession()
+
+        val restarted = createSessionManager(sessions, preferences)
+        assertEquals(session.id, restarted.restoreSessionIfActive()?.id)
+        assertEquals(SessionState.PAUSED, restarted.sessionState.value)
+        assertEquals(SessionState.PAUSED, restarted.currentSession.value?.state)
+    }
+
+    @Test
+    fun restart_doesNotResumeStoppedSession() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val original = createSessionManager(sessions, preferences)
+        original.startSession("Stopped by user")
+        original.stopSession()
+
+        val restarted = createSessionManager(sessions, preferences)
+        assertNull(restarted.restoreSessionIfActive())
+        assertEquals(SessionState.INACTIVE, restarted.sessionState.value)
+        assertNull(preferences.activeSessionId.first())
+    }
+
+    @Test
+    fun restart_clearsReferenceToDeletedSession() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val session = createSessionManager(sessions, preferences).startSession("Deleted")
+        sessions.deleteSession(session.id)
+
+        val restarted = createSessionManager(sessions, preferences)
+        assertNull(restarted.restoreSessionIfActive())
+        assertEquals(SessionState.INACTIVE, restarted.sessionState.value)
+        assertNull(preferences.activeSessionId.first())
+    }
+
+    @Test
+    fun restart_doesNotReviveEndedRecordEvenIfMarkedActive() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val session = createSessionManager(sessions, preferences).startSession("Already ended")
+        sessions.updateSession(session.copy(endTime = session.startTime + 1000))
+
+        val restarted = createSessionManager(sessions, preferences)
+        assertNull(restarted.restoreSessionIfActive())
+        assertEquals(SessionState.STOPPED, restarted.sessionState.value)
+        assertEquals(SessionState.STOPPED, restarted.currentSession.value?.state)
+        assertNull(preferences.activeSessionId.first())
+    }
+
+    @Test
+    fun restart_doesNotRestoreInactiveRecord() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val session = createSessionManager(sessions, preferences).startSession("Invalid state")
+        sessions.updateSession(session.copy(state = SessionState.INACTIVE))
+
+        val restarted = createSessionManager(sessions, preferences)
+        assertNull(restarted.restoreSessionIfActive())
+        assertEquals(SessionState.STOPPED, restarted.sessionState.value)
+        assertNull(preferences.activeSessionId.first())
+    }
+
+    @Test
+    fun restart_repeatedRestorationDoesNotDuplicateSession() = runBlocking {
+        val sessions = FakeSessionRepository()
+        val preferences = FakePreferencesRepository()
+        val session = createSessionManager(sessions, preferences).startSession("One session")
+        val restarted = createSessionManager(sessions, preferences)
+
+        repeat(3) { assertEquals(session.id, restarted.restoreSessionIfActive()?.id) }
+        assertEquals(1, sessions.sessions.size)
+        assertNull(restarted.currentSession.value?.endTime)
     }
 }

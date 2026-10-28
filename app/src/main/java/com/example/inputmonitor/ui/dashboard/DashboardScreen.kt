@@ -232,6 +232,14 @@ fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (uiState.sessionState == SessionState.ACTIVE || uiState.sessionState == SessionState.PAUSED) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Session saved on this device. After restart and unlock, it is restored when Android starts the app or its enabled services. Paused sessions stay paused. Android controls permissions and service access.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         if (session.notes != null) {
                             Text(
                                 text = "Notes: ${session.notes}",

@@ -80,10 +80,15 @@ class ExportViewModel(
         _progressState.value = _progressState.value.copy(result = null)
     }
 
-    fun executeExport(outputStream: OutputStream, targetUriString: String? = null) {
+    fun executeExport(
+        outputStream: OutputStream,
+        targetUriString: String? = null,
+        onComplete: ((Boolean) -> Unit)? = null
+    ) {
         _progressState.value = ExportProgressState(isExporting = true)
 
         viewModelScope.launch {
+            var isSuccess = false
             try {
                 val result = exportSessionUseCase(
                     outputStream = outputStream,
@@ -100,7 +105,10 @@ class ExportViewModel(
                 _progressState.value = _progressState.value.copy(
                     isExporting = false,
                     result = when (result) {
-                        is ExportResult.Success -> result.copy(targetUriString = targetUriString)
+                        is ExportResult.Success -> {
+                            isSuccess = true
+                            result.copy(targetUriString = targetUriString)
+                        }
                         is ExportResult.Error -> result
                     }
                 )
@@ -114,8 +122,10 @@ class ExportViewModel(
                 )
             } finally {
                 try {
+                    outputStream.flush()
                     outputStream.close()
                 } catch (_: Throwable) {}
+                onComplete?.invoke(isSuccess)
             }
         }
     }
