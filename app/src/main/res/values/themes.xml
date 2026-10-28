@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.InputMonitor" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Base Android theme for splash/startup. Compose handles Material 3 theming. -->
+    </style>
+</resources>

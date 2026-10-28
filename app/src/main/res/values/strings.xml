@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Input Monitor</string>
+    <string name="keyboard_subtype_english">English (US)</string>
+    <string name="accessibility_service_description">Monitors supported interaction events such as taps, focus changes, scrolls, and application transitions for local analysis. This service does not collect passwords, PINs, or credential content.</string>
+</resources>

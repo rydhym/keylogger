@@ -1,29 +1,55 @@
-.local/
-.tools/
-node_modules/
-android/.gradle/
-android/local.properties
-**/build/
+# Built application files
+*.apk
+*.aar
+*.ap_
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+output/
+tmp/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio / IDE
+*.iml
+.idea/
+.vscode/
+.navigation/
+captures/
+
+# Keystore files
 *.jks
 *.keystore
-*.apk
-*.aab
-*.log
-artifacts/
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.p12
-*.pfx
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-operator-token.txt
+
+# External native build folder generated in Android Studio 2.2 and later
+.cxx/
+
+# Google Services (Secrets)
+google-services.json
+
+# OS-generated files
 .DS_Store
 Thumbs.db
-cleartrail-recovery*.json
-cleartrail-phone*.json
+
+# Kotlin
+*.kotlin_module
+.kotlin/
+
+# Generated document layout previews
+reports/qa/
+
+# Crash logs
+crash-reports/

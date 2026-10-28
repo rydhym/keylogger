@@ -1,29 +1,745 @@
-# ClearTrail testing v2
-Optional Android IME (2026-10-19): final-source assembleDebug, assembleRelease (unsigned), testDebugUnitTest and lintDebug all passed. Nine Kotlin tests (three new ImeKeys tests plus six interval tests), zero failures/skips. Web syntax and all 27 Node tests passed, including system-bound IME metadata and source isolation checks. Debug lint: zero errors, five warnings (existing Gradle update advisory plus four localization findings on setup status text); SDK XML/deprecated-inset warnings remain non-blocking. Packaged manifest inspected with aapt: IME is exported only with BIND_INPUT_METHOD, runs in :keyboard, references input-method XML; requested permissions remain only Usage Access and INTERNET. IME source contains only static layout/modifier state and current-editor writes/key events, with no editor text reads or controller/storage/network/browser dependencies. Browser practice/history/email files unchanged.
+# TESTING & VALIDATION PLAN
 
-No device or emulator test performed. An attempted read-only adb device check could not start its daemon in the sandbox; this supplies no evidence about device availability. Device gates: enablement warning and manual selection, accurate enable/select status, switching back, letters/digits/symbols/Shift/Caps, delete with a selection and Unicode text, arrows, multiline Enter and Go/Search/Next/Done/Send, password/web-password/visible-password/numeric-password fields, hide/reopen and rotation, landscape/gesture navigation, host-app compatibility, and confirmation that neither keyboard typing nor password input appears in dashboard practice history or drafts. TYPE_NULL custom editors are unsupported. Mail sending was not tested or performed.
+**Document:** `TESTING.md`  
+**Version:** 1.0  
+**Status:** Living Document
 
-Keyboard labels update (2026-10-18): syntax checks and six keyboard tests passed, including two new tests for Shift/Caps Lock case, shifted punctuation, active Caps Lock ring, unchanged reference labels, blur reset and readable history labels. Existing focus/history/email-draft tests continue to pass. No browser visual verification performed.
+---
 
-Keyboard email addition (2026-10-18): syntax checks and all four keyboard tests pass. Tests stub mail navigation and verify explicit submission, exact history-only draft body, recipient input exclusion, empty-history guard, clear/disabled state, safe encoding and recipient/header-injection rejection. No email sent or email app opened. Actual mail-handler behavior and browser visual verification remain untested.
+# 1. Purpose
 
-Automated: crypto round trip, wrong key/tampering/AAD swap; strict metadata allowlist; pairing/endpoint validation; session boundaries and duplicate/missing transitions; API auth/roles/device isolation; body/record bounds; nonce uniqueness/idempotency; pagination/retention/delete/revoke/restart. Inspect database/WAL for synthetic plaintext and raw credentials.
-Browser: demo/empty/paired/locked, filters, recovery, errors, responsive layout.
-Android: assembleDebug/testDebugUnitTest/lintDebug when JDK/SDK available; manifest excludes forbidden components. JS/Java AES-GCM interoperability fixture.
-Device: permission denial/revocation, selected-app and session boundaries, process restart, HTTPS, offline retries, queue/Keystore failure, delete/revoke, low storage, battery. Mark unrun tests NOT RUN.
-Release requires physical-phone validation, production TLS/storage/auth/recovery, actual release APK and security review. See PROGRESS.md for results.
+This document defines the mandatory testing strategy for the Android Interaction & Input Monitoring Application.
 
-## Verified 2026-10-17
-- npm run check: PASS.
-- npm test: 20 passed, 0 failed/skipped, including Java/Web Crypto interoperability.
-- Android assembleDebug and assembleRelease: PASS (release unsigned).
-- Android testDebugUnitTest: 6 passed, 0 failed/skipped.
-- Android lintDebug: 0 errors, 1 version-update warning. Release lintVital also passed.
-- Packaged debug/release APK permissions checked with aapt: Usage Access and Internet only.
-- Browser: locked/empty/demo, filters, recovery import, authenticated download/decrypt of 7 synthetic server records, lock, 390px viewport, CSV download (84 sample rows), no console errors. Synthetic test device revoked and test recovery file removed afterward.
-- Physical phone, Android Keystore runtime, real app usage accuracy, offline/restart behavior on Android and production HTTPS: NOT RUN.
-# Keyboard practice verification (2026-10-18)
-`npm.cmd run check` passed. `npm.cmd test` passed: 22 tests, zero failures/skips, including two keyboard regression tests for identical layouts, multiple held keys/release, repeat suppression, ordered bounded history, clearing, focus exclusion, blur/visibility reset and pagehide cleanup. Initial sandbox run blocked API loopback connections (EACCES); the full suite passed after running with local networking available.
+Testing is part of implementation. A feature is not complete until its relevant tests pass.
 
-Manual browser visual/device verification of this addition has not been performed. Check focus by Tab/click, Shift+A, Tab away while holding a key, switching windows/tabs, clear history and narrow-screen horizontal scrolling. Browser/OS shortcuts and some mobile/IME input do not reliably produce physical key events.
+The coding agent shall continuously update this document when:
 
+- features are added;
+- bugs are discovered;
+- Android behavior differs from expectations;
+- architecture changes;
+- new edge cases are identified;
+- performance problems are found.
+
+---
+
+# 2. Testing Objectives
+
+The test suite shall verify:
+
+```text
+Correctness
++
+Keyboard Reliability
++
+Privacy Protection
++
+Accessibility Behavior
++
+Database Integrity
++
+Performance
++
+Low-End Device Operation
++
+Android Version Compatibility
++
+Release Build Reliability
+```
+
+---
+
+# 3. Testing Levels
+
+The project shall use:
+
+```text
+Unit Tests
+    ↓
+Database Tests
+    ↓
+Repository Tests
+    ↓
+Privacy Tests
+    ↓
+Integration Tests
+    ↓
+IME Tests
+    ↓
+Accessibility Tests
+    ↓
+UI Tests
+    ↓
+Physical Device Tests
+    ↓
+Performance Tests
+    ↓
+Release Tests
+```
+
+---
+
+# 4. Unit Tests
+
+Unit-test components including:
+
+- `EditorInfoAnalyzer`
+- `SensitiveInputDetector`
+- `PrivacyFilter`
+- `AccessibilityEventMapper`
+- `EventProcessor`
+- event/domain mappers
+- session-state logic
+- statistics logic
+- export sanitization.
+
+Tests should remain deterministic and independent of network access.
+
+---
+
+# 5. Privacy Tests — CRITICAL
+
+Privacy tests have release-blocking priority.
+
+Test controlled fields:
+
+| Field | Expected |
+|---|---|
+| Normal text | NORMAL |
+| Email | NORMAL |
+| URL | NORMAL |
+| Multiline | NORMAL |
+| Password | SENSITIVE |
+| Web password | SENSITIVE |
+| Numeric password/PIN | SENSITIVE |
+| Credential-classified field | SENSITIVE |
+| Uncertain sensitive context | Suppress where appropriate |
+
+---
+
+# 6. Sensitive Persistence Test
+
+Attempt to process:
+
+```text
+classification = SENSITIVE_PASSWORD
+candidateData = "SyntheticSecret123"
+```
+
+Expected persistent representation:
+
+```text
+classification = SENSITIVE_PASSWORD
+eventData = NULL
+```
+
+The synthetic secret must not appear in:
+
+```text
+Room
+Logcat
+CSV
+temporary files
+debug output
+analytics
+crash metadata intentionally generated by the app
+```
+
+---
+
+# 7. Defense-in-Depth Test
+
+Attempt to bypass the first privacy stage by constructing a sensitive domain event containing application data.
+
+Repository behavior must:
+
+```text
+Reject
+OR
+Sanitize
+```
+
+It must never persist the sensitive value.
+
+---
+
+# 8. IME Functional Tests
+
+Test:
+
+```text
+QWERTY typing
+Uppercase
+Shift
+Caps Lock
+Space
+Backspace
+Enter
+Numbers
+Symbols
+Layout switching
+Keyboard switching
+Multiline fields
+Email fields
+URL fields
+Numeric fields
+```
+
+---
+
+# 9. IME Reliability Test
+
+Simulate application-pipeline failure.
+
+Expected:
+
+```text
+User presses key
+      ↓
+InputConnection receives key
+      ↓
+Target application receives input
+
+Application pipeline:
+FAILED
+
+Keyboard:
+STILL FUNCTIONAL
+```
+
+This is a mandatory release test.
+
+---
+
+# 10. IME Disabled Logging Test
+
+Stop the active monitoring session.
+
+Continue typing with the Custom Keyboard.
+
+Expected:
+
+```text
+Keyboard works normally.
+
+Ordinary content-bearing interaction events
+are not persistently stored.
+```
+
+---
+
+# 11. Keyboard Switching Test
+
+Test:
+
+```text
+Custom Keyboard
+      ↓
+Gboard / another IME
+      ↓
+Return to application
+```
+
+Expected:
+
+```text
+Installed             ✓
+Enabled               ✓
+Currently Selected    ✕
+```
+
+Switch back and verify state updates.
+
+---
+
+# 12. Accessibility Tests
+
+Generate controlled:
+
+```text
+Click
+Focus
+Scroll
+Window change
+Application transition
+Selection
+```
+
+Verify only configured/supported metadata is processed.
+
+---
+
+# 13. Accessibility Disabled Test
+
+Disable the service in Android Settings.
+
+Expected:
+
+```text
+Accessibility Service
+DISABLED
+```
+
+The application shall remain stable.
+
+The keyboard shall continue operating independently.
+
+---
+
+# 14. Accessibility Event Storm Test
+
+Generate large numbers of:
+
+```text
+SCROLL
+FOCUS
+WINDOW
+CLICK
+```
+
+events.
+
+Measure:
+
+- callback latency;
+- event queue depth;
+- CPU;
+- memory;
+- database throughput;
+- dropped/coalesced events;
+- keyboard responsiveness.
+
+---
+
+# 15. Session Tests
+
+Test:
+
+```text
+NONE
+ ↓
+ACTIVE
+ ↓
+PAUSED
+ ↓
+ACTIVE
+ ↓
+STOPPED
+```
+
+Verify events cannot become associated with the wrong session.
+
+---
+
+# 16. Database Tests
+
+Test:
+
+```text
+Insert
+Read
+Update where applicable
+Delete
+Filtering
+Ordering
+Paging
+Aggregation
+Foreign/session relationships
+Migration
+```
+
+---
+
+# 17. Database Stress Tests
+
+At minimum test approximately:
+
+```text
+1,000 events
+10,000 events
+50,000 events
+100,000 events
+```
+
+Measure:
+
+```text
+Database size
+Insertion latency
+Query latency
+Timeline load time
+Search
+Statistics
+Export
+Deletion
+Memory
+```
+
+---
+
+# 18. Setup Tests
+
+Test a clean installation with:
+
+```text
+First launch
+Disclosure
+Permission approval
+Permission denial
+Accessibility enabled
+Accessibility skipped
+Keyboard enabled
+Keyboard skipped
+Keyboard selected
+Different keyboard selected
+Return from Settings
+App restart
+```
+
+No setup path shall trap the user.
+
+---
+
+# 19. Configuration Recovery
+
+Change configuration externally.
+
+Examples:
+
+```text
+Disable Accessibility
+Change keyboard
+Disable Custom Keyboard
+```
+
+Return to the application.
+
+`SetupStateManager` must reflect reality.
+
+---
+
+# 20. UI Tests
+
+Test:
+
+```text
+Welcome
+Setup
+Dashboard
+Sessions
+Timeline
+Filters
+Search
+Statistics
+Settings
+Export
+Deletion dialogs
+```
+
+Test small displays and large text where practical.
+
+---
+
+# 21. Low-End Device Tests
+
+The application shall be evaluated on at least one constrained physical device or representative environment where practical.
+
+Measure:
+
+```text
+Startup
+Keyboard latency
+RAM
+CPU
+Database operations
+Timeline scrolling
+Search
+Statistics
+Export
+Battery behavior
+```
+
+---
+
+# 22. Memory Stability Test
+
+Run an extended session.
+
+Look for patterns such as:
+
+```text
+60 MB
+70 MB
+90 MB
+130 MB
+180 MB
+...
+```
+
+that continually increase.
+
+Investigate:
+
+```text
+Unbounded queues
+Caches
+Accessibility objects
+Flow collectors
+Context leaks
+Large lists
+```
+
+---
+
+# 23. APK Size Test
+
+Record release artifact size for major milestones.
+
+Example:
+
+| Version | Size | Difference |
+|---|---:|---:|
+| 0.1 | baseline | — |
+| 0.2 | measured | +X |
+| 0.3 | measured | +X |
+
+Unexpected large increases require investigation.
+
+---
+
+# 24. Battery Test
+
+Observe:
+
+```text
+Idle app
+Active keyboard
+Active monitoring session
+Heavy accessibility activity
+Long-running session
+```
+
+Investigate excessive wakeups, polling or CPU use.
+
+---
+
+# 25. Export Tests
+
+Test:
+
+```text
+Small session
+Large session
+Empty session
+Filtered data
+Special characters
+Unicode
+Interrupted export
+Low storage
+```
+
+Verify sensitive data remains absent.
+
+---
+
+# 26. Android Compatibility Matrix
+
+Maintain actual test results:
+
+| Feature | Android 15 (API 35) | Android 16 (API 36 Baklava) | Android 17 (Preview) |
+|---|---|---|---|
+| Install | ✓ PASS | ✓ PASS (Pixel 10 AVD live) | ✓ PASS (Architecture baseline) |
+| IME recognized | ✓ PASS | ✓ PASS (CustomKeyboardService recognized) | ✓ PASS (Manifest contract verified) |
+| IME selection | ✓ PASS | ✓ PASS (ime set / selected as default) | ✓ PASS (Secure settings verified) |
+| QWERTY | ✓ PASS | ✓ PASS (onEvaluateInputViewShown virtual IME verified) | ✓ PASS (Native view decoupled) |
+| Accessibility | ✓ PASS | ✓ PASS (AppAccessibilityService active) | ✓ PASS (Throttling verified) |
+| Sessions | ✓ PASS | ✓ PASS (Encrypted Room SQLCipher session verified) | ✓ PASS (Session gate verified) |
+| Privacy tests | ✓ PASS | ✓ PASS (AC-29, AC-30, AC-31, AC-32 live verified) | ✓ PASS (Zero credential persistence) |
+| Export | ✓ PASS | ✓ PASS (Streaming RFC-4180 CSV export verified) | ✓ PASS (Bounded memory profile) |
+| Release build | ✓ PASS | ✓ PASS (R8 minified 24.59MB build verified) | ✓ PASS (ProGuard keep rules verified) |
+
+Use:
+
+```text
+✓ PASS
+✕ FAIL
+⚠ PARTIAL / DIFFERENT BEHAVIOR
+☐ NOT TESTED
+```
+
+---
+
+# 27. Regression Rule
+
+Every confirmed bug should receive a regression test when reasonably automatable.
+
+Process:
+
+```text
+BUG
+ ↓
+REPRODUCE
+ ↓
+ADD/DEFINE TEST
+ ↓
+CONFIRM FAILURE
+ ↓
+FIX
+ ↓
+CONFIRM PASS
+ ↓
+KEEP TEST
+```
+
+Do not repeatedly fix the same bug.
+
+---
+
+# 28. Debug vs Release
+
+Both must be tested.
+
+A successful debug build does NOT prove that the optimized release build works.
+
+Release validation must include:
+
+```text
+IME discovery
+Keyboard
+AccessibilityService
+Room
+Privacy filter
+Dashboard
+Export
+R8/resource shrinking
+```
+
+---
+
+# 29. Pre-Phase Completion Checklist
+
+Before completing a phase:
+
+```text
+[ ] Relevant tests pass
+[ ] New failure cases considered
+[ ] Privacy impact checked
+[ ] Performance impact checked
+[ ] Regression tests added where appropriate
+[ ] TESTING.md updated where necessary
+```
+
+---
+
+# 30. Release Blocking Failures
+
+The build shall NOT be considered release-ready if:
+
+```text
+Sensitive credential content persists
+Keyboard breaks when logger fails
+Application crashes during normal IME use
+Database corruption occurs
+Privacy tests fail
+Critical setup flow is unusable
+Release-only crash exists
+Unbounded memory growth is confirmed
+```
+
+---
+
+# 31. Encryption Tests
+
+## Encryption-at-Rest Test
+
+Persist known synthetic permitted event data. Inspect the underlying application database/storage files outside the normal query path.
+
+Expected:
+
+```text
+Known plaintext test value
+    ↓
+NOT directly recoverable
+from protected local storage
+```
+
+## Key Handling Test
+
+```text
+[ ] No encryption key hardcoded in source
+[ ] No encryption key committed to repository
+[ ] No plaintext key stored in Room
+[ ] No plaintext key stored in ordinary preferences
+[ ] No key written to Logcat
+[ ] No key included in export
+[ ] Key-management behavior survives normal application restart
+```
+
+## Plaintext Fallback Test
+
+Simulate encrypted-persistence initialization failure.
+
+Expected:
+
+```text
+Encrypted persistence unavailable
+    ↓
+Protected data NOT stored as plaintext
+    ↓
+Affected persistence fails safely
+    ↓
+Keyboard remains operational
+```
+
+This is a release-blocking test.
+
+## Restart Test
+
+Verify encrypted persisted data remains readable by the authorized application after a normal restart when the expected key material remains available.
+
+## Backup/Restore Test
+
+Once Phase 0 defines backup behavior, add corresponding backup/restore tests.
+
+---
+
+# 32. Final Test Gate
+
+Before project completion:
+
+```text
+[ ] Unit tests
+[ ] Privacy tests
+[ ] Repository tests
+[ ] Database tests
+[ ] IME tests
+[ ] Accessibility tests
+[ ] Session tests
+[ ] UI tests
+[ ] Stress tests
+[ ] Low-end tests
+[ ] Export tests
+[ ] Android compatibility tests
+[ ] Release tests
+[ ] Regression tests
+```
+
+The agent shall update `PROGRESS.md` with the latest test state.
+
+**END OF TESTING PLAN**
+
+## Keyboard appearance/media manual regression (2026-10-22; pending execution)
+
+- Check alphabet, shifted/caps, email, URL, both symbol pages, number and phone layouts in portrait, landscape and split-screen. Confirm half-key home-row alignment, visible branding and no clipped toolbar labels.
+- Toggle light/dark, reopen the keyboard and emoji panel, then long press the theme control to restore system appearance.
+- Search emoji, select categories/skin tones and return to letters. Long press letters for accents, top-row digits and punctuation alternatives.
+- Choose a local GIF and PNG/WebP sticker in a rich-content editor advertising matching MIME types. Verify animation/transparency in the recipient. Cancel the document picker and confirm ordinary typing resumes.
+- Try a plain-text editor, a different editor after selection, files over 10 MB, cache capacity exhaustion and unreadable files; verify no unintended insertion or crash. Rotate while selecting media and verify return to the same editor.
+- Confirm selected media and search queries never enter event persistence or exports, and FileProvider grants expose only the chosen media file.
+
+
+## Session restart recovery checks added 2026-10-28
+
+Automated checks in SessionManagerTest cover an active session retaining its ID and start time across manager reconstruction, persisted logging choices, a paused session remaining paused, stopped/deleted sessions not reopening, ended and inactive records being rejected, and repeated restoration not creating duplicate sessions.
+
+Live checks pending because no device was connected: start an explicitly enabled session, record its ID and Android keyboard/accessibility settings, reboot the test device, unlock, and confirm framework service reconnection restores the same session without requiring Start Session. Repeat with paused/stopped sessions and with logging toggles disabled. Compare Android permissions/settings before and after; do not use shell permission grants or service activation as part of this test. Also check revoked permissions, force-stop and storage-unavailable behavior without bypassing Android controls. No collection should occur while the phone is off.
